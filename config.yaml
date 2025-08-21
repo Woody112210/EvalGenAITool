@@ -1,0 +1,30 @@
+fal_key: "27d8a5fb-1d84-40a1-bb29-0d6793ce95d3:e8a93d1c6ce47f66e1ade527bedbc9ba"
+
+text_to_image_models:
+  flux:
+    model_path: "fal-ai/flux/dev"
+    params: {}
+  stable_diffusion:
+    model_path: "fal-ai/stable-diffusion-xl"
+    params: {}
+
+image_to_image_models:
+  flux:
+    model_path: "fal-ai/flux-pro/kontext/max"
+    params: {}
+  qwen:
+    model_path: "fal-ai/qwen-image-edit"
+    params: {}
+
+image_to_video_models:
+  kling2.1:
+    model_path: "fal-ai/kling-video/v2.1/master/image-to-video"
+    params: {}
+
+text_to_video_models:
+  kling2.1:
+    model_path: "fal-ai/kling-video/v2.1/master/text-to-video"
+    params: {}
+  wan:
+    model_path: "fal-ai/wan/v2.2-a14b/text-to-video"
+    params: {}
