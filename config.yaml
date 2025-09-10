@@ -1,7 +1,7 @@
 # EvalGenAITool Configuration File
-# 请将 YOUR_API_KEY_HERE 替换为您的实际 fal.ai API 密钥
+# 请将 27d8a5fb-1d84-40a1-bb29-0d6793ce95d3:e8a93d1c6ce47f66e1ade527bedbc9ba 替换为您的实际 fal.ai API 密钥
 
-fal_key: "YOUR_API_KEY_HERE"
+fal_key: "27d8a5fb-1d84-40a1-bb29-0d6793ce95d3:e8a93d1c6ce47f66e1ade527bedbc9ba"
 
 # Text-to-Image 模型配置
 text_to_image_models:
