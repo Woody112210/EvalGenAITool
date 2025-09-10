@@ -1,13 +1,20 @@
+# EvalGenAITool Configuration File
+# 请将 27d8a5fb-1d84-40a1-bb29-0d6793ce95d3:e8a93d1c6ce47f66e1ade527bedbc9ba 替换为您的实际 fal.ai API 密钥
+
 fal_key: "27d8a5fb-1d84-40a1-bb29-0d6793ce95d3:e8a93d1c6ce47f66e1ade527bedbc9ba"
 
+# Text-to-Image 模型配置
 text_to_image_models:
+  hunyuan:
+    model_path: "fal-ai/hunyuan-image/v2.1/text-to-image"
+    params: {}
   flux:
     model_path: "fal-ai/flux/dev"
     params: {}
-  stable_diffusion:
-    model_path: "fal-ai/stable-diffusion-xl"
-    params: {}
+  # 注意: stable-diffusion-xl 模型路径已验证无效，已移除
+  # 如需添加其他模型，请确认正确的模型路径
 
+# Image-to-Image 模型配置
 image_to_image_models:
   flux:
     model_path: "fal-ai/flux-pro/kontext/max"
@@ -16,11 +23,13 @@ image_to_image_models:
     model_path: "fal-ai/qwen-image-edit"
     params: {}
 
+# Image-to-Video 模型配置
 image_to_video_models:
   kling2.1:
     model_path: "fal-ai/kling-video/v2.1/master/image-to-video"
     params: {}
 
+# Text-to-Video 模型配置
 text_to_video_models:
   kling2.1:
     model_path: "fal-ai/kling-video/v2.1/master/text-to-video"
