@@ -1,70 +1,133 @@
 #!/usr/bin/env python3
-import pandas as pd
+"""
+结果解析脚本
+将CSV结果转换为JSON格式用于Web展示
+"""
+import sys
 import json
-import re
-import ast
+import argparse
+from pathlib import Path
 
-def extract_url_from_result(result_str):
-    """Extract URL from the result string which contains a dictionary"""
+import pandas as pd
+
+from lib.logger_config import setup_logger
+from lib.utils import extract_url_from_result, is_valid_csv_file
+
+logger = setup_logger(__name__)
+
+
+def parse_csv_results(csv_file, output_file=None):
+    """
+    解析CSV结果文件
+    
+    Args:
+        csv_file: CSV文件路径
+        output_file: 输出JSON文件路径（可选）
+        
+    Returns:
+        解析后的结果列表
+    """
+    csv_path = Path(csv_file)
+    
+    # 验证文件
+    if not is_valid_csv_file(csv_file):
+        raise ValueError(f"无效的CSV文件: {csv_file}")
+    
     try:
-        # Handle the case where result_str might be a string representation of a dict
-        if isinstance(result_str, str):
-            if result_str.startswith("Error:"):
-                return None
-            # Try to parse as literal dict
-            try:
-                result_dict = ast.literal_eval(result_str)
-                return result_dict.get('url')
-            except:
-                # Try regex to extract URL
-                url_match = re.search(r"'url': '([^']+)'", result_str)
-                if url_match:
-                    return url_match.group(1)
-        return None
+        df = pd.read_csv(csv_path)
+        logger.info(f"成功加载CSV文件，共 {len(df)} 行")
     except Exception as e:
-        print(f"Error parsing result: {e}")
-        return None
-
-def parse_csv_results(csv_file):
-    """Parse the CSV results and extract image data"""
-    df = pd.read_csv(csv_file)
+        logger.error(f"加载CSV文件失败: {e}")
+        raise
+    
+    # 检查必要列
+    if 'prompt' not in df.columns:
+        logger.error("CSV文件中未找到 'prompt' 列")
+        raise ValueError("CSV文件中未找到 'prompt' 列")
     
     results = []
+    
     for idx, row in df.iterrows():
         prompt = row['prompt']
-        
-        # Extract URLs for each model
-        hunyuan_url = extract_url_from_result(row.get('hunyuan', ''))
-        flux_url = extract_url_from_result(row.get('flux', ''))
-        
         result_item = {
             'id': idx + 1,
             'prompt': prompt,
-            'hunyuan_url': hunyuan_url,
-            'flux_url': flux_url
         }
+        
+        # 提取所有模型的URL
+        for col in df.columns:
+            if col != 'prompt' and col != 'image_path':
+                url = extract_url_from_result(row.get(col, ''))
+                result_item[f'{col}_url'] = url
+        
         results.append(result_item)
+    
+    logger.info(f"成功解析 {len(results)} 条结果")
+    
+    # 保存为JSON（如果指定了输出文件）
+    if output_file:
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                json.dump(results, f, indent=2, ensure_ascii=False)
+            logger.info(f"结果已保存到: {output_path}")
+        except Exception as e:
+            logger.error(f"保存JSON文件失败: {e}")
+            raise
     
     return results
 
+
+def print_summary(results):
+    """
+    打印结果摘要
+    
+    Args:
+        results: 结果列表
+    """
+    logger.info("=" * 60)
+    logger.info("解析摘要")
+    logger.info("=" * 60)
+    logger.info(f"总条数: {len(results)}")
+    
+    # 统计各模型的成功率
+    if results:
+        model_stats = {}
+        for result in results:
+            for key, value in result.items():
+                if key.endswith('_url') and key != 'id' and key != 'prompt':
+                    model_name = key.replace('_url', '')
+                    if model_name not in model_stats:
+                        model_stats[model_name] = {'success': 0, 'total': 0}
+                    model_stats[model_name]['total'] += 1
+                    if value:
+                        model_stats[model_name]['success'] += 1
+        
+        for model_name, stats in model_stats.items():
+            success_rate = (stats['success'] / stats['total'] * 100) if stats['total'] > 0 else 0
+            logger.info(f"{model_name}: {stats['success']}/{stats['total']} ({success_rate:.1f}%)")
+    
+    logger.info("=" * 60)
+
+
 def main():
-    # Parse the latest results
-    csv_file = '/home/ubuntu/EvalGenAITool/output/text_to_image_results_20250910_064833.csv'
-    results = parse_csv_results(csv_file)
+    """主函数"""
+    parser = argparse.ArgumentParser(description='解析生成AI工具的CSV结果文件')
+    parser.add_argument('csv_file', help='输入CSV文件路径')
+    parser.add_argument('-o', '--output', help='输出JSON文件路径', default=None)
     
-    # Save as JSON for web page
-    output_file = '/home/ubuntu/EvalGenAITool/image_results.json'
-    with open(output_file, 'w', encoding='utf-8') as f:
-        json.dump(results, f, indent=2, ensure_ascii=False)
+    args = parser.parse_args()
     
-    print(f"Parsed {len(results)} results and saved to {output_file}")
-    
-    # Print summary
-    hunyuan_success = sum(1 for r in results if r['hunyuan_url'])
-    flux_success = sum(1 for r in results if r['flux_url'])
-    
-    print(f"Hunyuan successful generations: {hunyuan_success}/{len(results)}")
-    print(f"Flux successful generations: {flux_success}/{len(results)}")
+    try:
+        results = parse_csv_results(args.csv_file, args.output)
+        print_summary(results)
+        return 0
+    except Exception as e:
+        logger.error(f"处理失败: {e}")
+        return 1
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
