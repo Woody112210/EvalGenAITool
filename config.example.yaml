@@ -1,0 +1,39 @@
+# EvalGenAITool Configuration File Example
+# 请复制此文件为 config.yaml，并将 YOUR_API_KEY_HERE 替换为您的实际 fal.ai API 密钥
+
+fal_key: "YOUR_API_KEY_HERE"
+
+# Text-to-Image 模型配置
+text_to_image_models:
+  hunyuan:
+    model_path: "fal-ai/hunyuan-image/v2.1/text-to-image"
+    params: {}
+  flux:
+    model_path: "fal-ai/flux/dev"
+    params: {}
+  # 注意: stable-diffusion-xl 模型路径已验证无效，已移除
+  # 如需添加其他模型，请确认正确的模型路径
+
+# Image-to-Image 模型配置
+image_to_image_models:
+  flux:
+    model_path: "fal-ai/flux-pro/kontext/max"
+    params: {}
+  qwen:
+    model_path: "fal-ai/qwen-image-edit"
+    params: {}
+
+# Image-to-Video 模型配置
+image_to_video_models:
+  kling2.1:
+    model_path: "fal-ai/kling-video/v2.1/master/image-to-video"
+    params: {}
+
+# Text-to-Video 模型配置
+text_to_video_models:
+  kling2.1:
+    model_path: "fal-ai/kling-video/v2.1/master/text-to-video"
+    params: {}
+  wan:
+    model_path: "fal-ai/wan/v2.2-a14b/text-to-video"
+    params: {}
